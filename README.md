@@ -16,8 +16,8 @@ I then used the resulting JSON file from the face feature analyzer to test this 
 
 ### Input and Output
 
-- **Input**: Image file (e.g., `.jpg`)
-- **Output**: JSON file containing detailed face data
+- **Input**: request.json containing the path toward the input image.
+- **Output**: Python Dictionary (similar to JSON structure) containing detailed face data.
 
 ### Pipeline Structure
 
