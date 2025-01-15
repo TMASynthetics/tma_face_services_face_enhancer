@@ -1,0 +1,10 @@
+{
+    "args": {
+
+        "input_image_1": "marie.jpeg",
+        "output_image_data": "output_data.json"
+    },
+
+    "debug": false
+
+}

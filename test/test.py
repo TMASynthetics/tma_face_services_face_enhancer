@@ -9,8 +9,12 @@ from src.pipeline import Pipeline
 # Record the start time of the execution
 start_time = time.time()
 
+# Load the request data from the JSON file
+with open('test/test_data/request.json', 'r') as request_file:
+	request_data = json.load(request_file)
+
 # Initialize the Pipeline with input image and analyzer response file
-pipeline = Pipeline('test/test_data/marie.jpeg', "test/test_data/analyser_response.json")
+pipeline = Pipeline(request_data["args"]["input_image_1"], "test/test_data/analyser_response.json")
 
 # Run the pipeline and get the output data
 output_data = pipeline.run()
