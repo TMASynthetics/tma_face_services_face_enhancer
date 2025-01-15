@@ -4,6 +4,7 @@ import onnxruntime as ort
 import json
 from config.warp_templates import WARP_TEMPLATES
 from config.models import MODELS
+import time
 
 
 def estimate_matrix_by_face_landmark_5(face_landmark_5, warp_template, crop_size):
@@ -92,48 +93,54 @@ def paste_back(temp_vision_frame, crop_vision_frame, crop_mask, affine_matrix):
 	return paste_vision_frame, inverse_mask
 
 if __name__ == '__main__':
-	# Load the image
-	target_vision_frame = cv2.imread('test/test_data/marie.jpeg')
+    # Load the image
+    start_time = time.time()
 
-	# load results from the face analyzer
-	with open('analyser_response.json', 'r') as file:
-		analyser_response = json.load(file)
-	
-	# As input, the face enhancer requires a face image and the face landmarks of the face in the image.
-	temp_vision_frame = np.array(analyser_response['output_image_data']["bounding_box"])
-	face_landmark_5 = np.array(analyser_response['output_image_data']["landmark_set"]["5"])
-	print(temp_vision_frame.shape)
+    target_vision_frame = cv2.imread('test/test_data/marie.jpeg')
 
-	model_template = MODELS["gfpgan_1.4"]['template']
-	model_size = MODELS["gfpgan_1.4"]['size']
+    # load results from the face analyzer
+    with open('test/test_data/analyser_response.json', 'r') as file:
+        analyser_response = json.load(file)
 
-	crop_vision_frame, affine_matrix = warp_face_by_face_landmark_5(target_vision_frame, face_landmark_5,  model_template, model_size)
-	# cv2.imwrite('test/test_data/marie_enhanced.jpeg', crop_vision_frame)
-	print(crop_vision_frame.shape)
-	box_mask = create_static_box_mask(crop_vision_frame.shape[:2][::-1], 0.3, [0,0,0,0])
-	crop_masks = [
-		box_mask
-	]
-	# Do we want the choice between occlusion and region?
-	occlusion_mask = create_occlusion_mask(crop_vision_frame)
-	crop_masks.append(occlusion_mask)
+    # As input, the face enhancer requires a face image and the face landmarks of the face in the image.
+    temp_vision_frame = np.array(analyser_response['output_image_data']["bounding_box"])
+    face_landmark_5 = np.array(analyser_response['output_image_data']["landmark_set"]["5"])
 
-	crop_vision_frame = prepare_crop_frame(crop_vision_frame)
-	crop_vision_frame = forward(crop_vision_frame)
-	crop_vision_frame = normalize_crop_frame(crop_vision_frame)
-	crop_mask = np.minimum.reduce(crop_masks).clip(0, 1)
-	paste_vision_frame, temp_vision_frame_mask = paste_back(target_vision_frame, crop_vision_frame, crop_mask, affine_matrix)
-	temp_vision_frame = blend_frame(target_vision_frame, paste_vision_frame)
-    
-	output_data = {
-		"temp_vision_frame": temp_vision_frame.tolist(),
-		"temp_vision_frame_mask": temp_vision_frame_mask.tolist()
-	}
+    model_template = MODELS["gfpgan_1.4"]['template']
+    model_size = MODELS["gfpgan_1.4"]['size']
 
-	with open('output_data.json', 'w') as outfile:
-		json.dump(output_data, outfile)
-	
-	# cv2.imshow('Temp Vision Frame', temp_vision_frame)
-	# cv2.imshow('Temp Vision Frame Mask', temp_vision_frame_mask)
-	# cv2.waitKey(0)
-	# cv2.destroyAllWindows()
+    crop_vision_frame, affine_matrix = warp_face_by_face_landmark_5(target_vision_frame, face_landmark_5,  model_template, model_size)
+    box_mask = create_static_box_mask(crop_vision_frame.shape[:2][::-1], 0.3, [0,0,0,0])
+    crop_masks = [
+        box_mask
+    ]
+    # Do we want the choice between occlusion and region?
+    occlusion_mask = create_occlusion_mask(crop_vision_frame)
+    crop_masks.append(occlusion_mask)
+
+    print(crop_vision_frame.shape)
+    print(box_mask.shape)
+    print(occlusion_mask.shape)
+
+    crop_vision_frame = prepare_crop_frame(crop_vision_frame)
+    crop_vision_frame = forward(crop_vision_frame)
+    crop_vision_frame = normalize_crop_frame(crop_vision_frame)
+    crop_mask = np.minimum.reduce(crop_masks).clip(0, 1)
+    paste_vision_frame, temp_vision_frame_mask = paste_back(target_vision_frame, crop_vision_frame, crop_mask, affine_matrix)
+    temp_vision_frame = blend_frame(target_vision_frame, paste_vision_frame)
+
+    output_data = {
+        "temp_vision_frame": temp_vision_frame.tolist(),
+        "temp_vision_frame_mask": temp_vision_frame_mask.tolist()
+    }
+
+    end_time = time.time()
+    print(f"Execution time: {end_time - start_time} seconds")
+
+    with open('output_data.json', 'w') as outfile:
+        json.dump(output_data, outfile)
+
+    # cv2.imshow('Temp Vision Frame', temp_vision_frame)
+    # cv2.imshow('Temp Vision Frame Mask', temp_vision_frame_mask)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
