@@ -26,7 +26,7 @@ end_time = time.time()
 print(f"Execution time: {round(end_time - start_time, 2)} seconds")
 
 # Write the output data to a JSON file
-with open('test/test_data/output_data.json', 'w') as outfile:
+with open(request_data["args"]["output_image_data"], 'w') as outfile:
 	json.dump(output_data, outfile)
 
 # Indicate that the job is done

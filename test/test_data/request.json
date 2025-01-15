@@ -1,8 +1,8 @@
 {
     "args": {
 
-        "input_image_1": "marie.jpeg",
-        "output_image_data": "output_data.json"
+        "input_image_1": "test/test_data/marie.jpeg",
+        "output_image_data": "test/test_data/output_data.json"
     },
 
     "debug": false
